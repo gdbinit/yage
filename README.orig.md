@@ -1,10 +1,3 @@
-** NOTE **
-
-This is a temporary fork that exports the plugin code so that it can be used by library API users. I'm using this for a `gopass` fork that uses `age-plugin-yubikey` to store the private keys.
-
-Upstream is working on creating a proper plugin API and hopefully that can be finished one of these days.
-
----
 
 <p align="center"><img alt="The age logo, an wireframe of St. Peters dome in Rome, with the text: age, file encryption" width="600" src="https://user-images.githubusercontent.com/1225294/132245842-fda4da6a-1cea-4738-a3da-2dc860861c98.png"></p>
 
