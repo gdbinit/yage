@@ -1,17 +1,4 @@
-// Copyright 2021 The age Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package main
-
-// This file implements the terminal UI of cmd/age. The rules are:
-//
-//   - Anything that requires user interaction goes to the terminal,
-//     and is erased afterwards if possible. This UI would be possible
-//     to replace with a pinentry with no output or UX changes.
-//
-//   - Everything else goes to standard error with an "age:" prefix.
-//     No capitalized initials and no periods at the end.
+package embedded
 
 import (
 	"bytes"
@@ -23,12 +10,21 @@ import (
 	"runtime"
 
 	"filippo.io/age/armor"
-	"filippo.io/age/plugin"
 	"golang.org/x/term"
 )
 
 // l is a logger with no prefixes.
 var l = log.New(os.Stderr, "", 0)
+
+const (
+	debug = false
+)
+
+func debugf(format string, v ...interface{}) {
+	if debug {
+		l.Printf("debug: "+format, v...)
+	}
+}
 
 func printf(format string, v ...interface{}) {
 	l.Printf("age: "+format, v...)
@@ -154,7 +150,24 @@ func readCharacter(prompt string) (c byte, err error) {
 	return
 }
 
-var pluginTerminalUI = &plugin.ClientUI{
+func bufferTerminalInput(in io.Reader) (io.Reader, error) {
+	buf := &bytes.Buffer{}
+	if _, err := buf.ReadFrom(ReaderFunc(func(p []byte) (n int, err error) {
+		if bytes.Contains(buf.Bytes(), []byte(armor.Footer+"\n")) {
+			return 0, io.EOF
+		}
+		return in.Read(p)
+	})); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+type ReaderFunc func(p []byte) (n int, err error)
+
+func (f ReaderFunc) Read(p []byte) (n int, err error) { return f(p) }
+
+var pluginTerminalUI = &ClientUI{
 	DisplayMessage: func(name, message string) error {
 		printf("%s plugin: %s", name, message)
 		return nil
@@ -207,20 +220,3 @@ var pluginTerminalUI = &plugin.ClientUI{
 		printf("waiting on %s plugin...", name)
 	},
 }
-
-func bufferTerminalInput(in io.Reader) (io.Reader, error) {
-	buf := &bytes.Buffer{}
-	if _, err := buf.ReadFrom(ReaderFunc(func(p []byte) (n int, err error) {
-		if bytes.Contains(buf.Bytes(), []byte(armor.Footer+"\n")) {
-			return 0, io.EOF
-		}
-		return in.Read(p)
-	})); err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-type ReaderFunc func(p []byte) (n int, err error)
-
-func (f ReaderFunc) Read(p []byte) (n int, err error) { return f(p) }

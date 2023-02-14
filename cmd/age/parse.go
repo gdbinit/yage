@@ -15,7 +15,8 @@ import (
 	"filippo.io/age"
 	"filippo.io/age/agessh"
 	"filippo.io/age/armor"
-	"filippo.io/age/internal/plugin"
+	"filippo.io/age/embedded"
+	"filippo.io/age/plugin"
 	"golang.org/x/crypto/cryptobyte"
 	"golang.org/x/crypto/ssh"
 )
@@ -31,7 +32,11 @@ func (gitHubRecipientError) Error() string {
 func parseRecipient(arg string) (age.Recipient, error) {
 	switch {
 	case strings.HasPrefix(arg, "age1") && strings.Count(arg, "1") > 1:
-		return plugin.NewRecipient(arg, pluginTerminalUI)
+		if strings.Contains(arg, "yubiembed") {
+			return embedded.NewRecipient(arg)	
+		} else {
+			return plugin.NewRecipient(arg, pluginTerminalUI)	
+		}
 	case strings.HasPrefix(arg, "age1"):
 		return age.ParseX25519Recipient(arg)
 	case strings.HasPrefix(arg, "ssh-"):
@@ -197,6 +202,8 @@ func parseIdentitiesFile(name string) ([]age.Identity, error) {
 
 func parseIdentity(s string) (age.Identity, error) {
 	switch {
+	case strings.HasPrefix(s, "AGE-PLUGIN-YUBIEMBED"):
+		return embedded.NewIdentity(s)
 	case strings.HasPrefix(s, "AGE-PLUGIN-"):
 		return plugin.NewIdentity(s, pluginTerminalUI)
 	case strings.HasPrefix(s, "AGE-SECRET-KEY-1"):

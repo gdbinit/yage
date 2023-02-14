@@ -1,251 +1,155 @@
-<p align="center"><img alt="The age logo, an wireframe of St. Peters dome in Rome, with the text: age, file encryption" width="600" src="https://user-images.githubusercontent.com/1225294/132245842-fda4da6a-1cea-4738-a3da-2dc860861c98.png"></p>
+## About
 
-[![Go Reference](https://pkg.go.dev/badge/filippo.io/age.svg)](https://pkg.go.dev/filippo.io/age)
-[![man page](<https://img.shields.io/badge/age(1)-man%20page-lightgrey>)](https://filippo.io/age/age.1)
-[![C2SP specification](https://img.shields.io/badge/%C2%A7%23-specification-blueviolet)](https://age-encryption.org/v1)
+This is an [age](https://github.com/FiloSottile/age) fork to directly use Yubikeys for private key generation and storage instead of external plugins such as [age-plugin-yubikey](https://github.com/str4d/age-plugin-yubikey) or [yubage](https://github.com/tv42/yubage).
 
-age is a simple, modern and secure file encryption tool, format, and Go library.
+The main reasons for this are that I find it annyoing to have external plugins for this specific purpose (negating Go's awesome static binaries) and complicates the [gopass](https://www.gopass.pw/) fork that I want to finish next.
 
-It features small explicit keys, no config options, and UNIX-style composability.
+While I understand why it was created, I'm not a fan of the plugin design since external code from `PATH` is called and there is no authentication between the caller (age) and the plugin, which is kind of weird when exchanging critical crypto material.
 
-```
-$ age-keygen -o key.txt
-Public key: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
-$ tar cvz ~/data | age -r age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p > data.tar.gz.age
-$ age --decrypt -i key.txt data.tar.gz.age > data.tar.gz
-```
+I also don't like Rust (essentially a C++ like spaghetti on steroids :-X) and the Go version is incomplete (lacking key generation and not fully compatible with `age-plugin-yubikey`). And most important, I still have too much free time these days while on funemployment.
 
-📜 The format specification is at [age-encryption.org/v1](https://age-encryption.org/v1). age was designed by [@Benjojo12](https://twitter.com/Benjojo12) and [@FiloSottile](https://twitter.com/FiloSottile).
+It also follows a principle to use as less external code as possible so the UI is not as nice as `age-plugin-yubikey` (key based selection instead of cursor based selection). The amount of random dependencies that certain Go projects have drives me crazy in a world of increasing supply chain attacks (yes, go mod and vendoring are nice, but less is more for me).
 
-📬 Follow the maintenance of this project by subscribing to [Maintainer Dispatches](https://filippo.io/newsletter)!
+A complete key generator `age-yubikeygen` is available and is pretty much on par with `age-plugin-yubikey` features.
 
-🦀 An alternative interoperable Rust implementation is available at [github.com/str4d/rage](https://github.com/str4d/rage).
+One difference versus `age-plugin-yubikey` usage is that you should initially run setup as `age-yubikeygen --setup` to make the target Yubikey ready (essentially forcing default PIN changes and migrating the management key to a PIN protected metadata slot). This is to support new and existing Yubikeys.
 
-🔑 Hardware PIV tokens such as YubiKeys are supported through the [age-plugin-yubikey](https://github.com/str4d/age-plugin-yubikey) plugin.
+Please notice that both `age-yubikeygen` and `age-plugin-yubikey` use the "retired key management" slots to store their keys and certificates. It's not possible to remove keys/certificates from individual slots but slot overwrite is supported.
 
-💬 The author pronounces it `[aɡe̞]`, like the Italian [“aghe”](https://translate.google.com/?sl=it&text=aghe).
+The key generator utility also supports a full PIV reset and options to change PIN and PUK. This avoids using `ykman` for these operations. **Please be aware that the PIV reset will clear all the slots, including the often used 9a, 9c, 9d, and 9e**. 
+
+The `age` command code was slightly modified to parse the new identity/recipient while also still supporting `age-plugin-yubikey`.
+
+This fork requires Go 1.20+ because it's already using latest `crypto/ecdh` package per Go 1.20 [release notes](https://go.dev/doc/go1.20#crypto/ecdh).
+
+Both Yubikeys 4 and 5 are supported, although Yubikeys 5 are better because of [issues](https://github.com/go-piv/piv-go/issues/47) with the caching and PIN reset. For example, the `once` policy isn't really easy to support with Yubikeys 4 and it's pretty much useless for practical usage purposes, meaning, that you always need to insert PIN when doing operations. This problem doesn't occur with Yubikeys 5.
+
+Tested on macOS x86_64 & ARM64, and Linux x86_64 & ARM64.
+
+I have no idea if there is a point in trying to merge with upstream `age`. The reason is that `age` codebase is quite stable these days and this fork ideas might not make sense there. Its goal is pretty much to fulfill my needs. I'll leave it to Filippo to decide that. All new code follows the original `age` license.
+
+Have fun,  
+fG!
 
 ## Installation
 
-<table>
-    <tr>
-        <td>Homebrew (macOS or Linux)</td>
-        <td>
-            <code>brew install age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>MacPorts</td>
-        <td>
-            <code>port install age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>Alpine Linux v3.15+</td>
-        <td>
-            <code>apk add age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>Arch Linux</td>
-        <td>
-            <code>pacman -S age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>Debian 11+ (Bullseye)</td>
-        <td>
-            <code>apt install age/bullseye-backports</code>
-            (<a href="https://backports.debian.org/Instructions/#index2h2">enable backports</a> for age v1.0.0+)
-        </td>
-    </tr>
-    <tr>
-        <td>Fedora 33+</td>
-        <td>
-            <code>dnf install age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>Gentoo Linux</td>
-        <td>
-            <code>emerge app-crypt/age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>NixOS / Nix</td>
-        <td>
-            <code>nix-env -i age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>openSUSE Tumbleweed</td>
-        <td>
-            <code>zypper install age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>Ubuntu 22.04+</td>
-        <td>
-            <code>apt install age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>Void Linux</td>
-        <td>
-            <code>xbps-install age</code>
-        </td>
-    </tr>
-    <tr>
-        <td>FreeBSD</td>
-        <td>
-            <code>pkg install age</code> (security/age)
-        </td>
-    </tr>
-    <tr>
-        <td>OpenBSD 6.7+</td>
-        <td>
-            <code>pkg_add age</code> (security/age)
-        </td>
-    </tr>
-    <tr>
-        <td>Chocolatey (Windows)</td>
-        <td>
-            <code>choco install age.portable</code>
-        </td>
-    </tr>
-    <tr>
-        <td>Scoop (Windows)</td>
-        <td>
-            <code>scoop bucket add extras; scoop install age</code>
-        </td>
-    </tr>
-</table>
-
-On Windows, Linux, macOS, and FreeBSD you can use the pre-built binaries.
-
+```bash
+git clone https://github.com/gdbinit/age.git
+cd age
+make
+sudo cp {age,age-keygen,age-yubikeygen} /usr/local/bin
 ```
-https://dl.filippo.io/age/latest?for=linux/amd64
-https://dl.filippo.io/age/v1.0.0-rc.1?for=darwin/arm64
-...
-```
-
-If your system has [a supported version of Go](https://go.dev/dl/), you can build from source.
-
-```
-go install filippo.io/age/cmd/...@latest
-```
-
-Help from new packagers is very welcome.
 
 ## Usage
 
-For the full documentation, read [the age(1) man page](https://filippo.io/age/age.1).
+There is no difference using `age`, it's just a matter of using the new recipients and identities generated with `age-yubikeygen`.
+
+The identities files aren't a secret as regular age identity files since they just contain information about the corresponding Yubikey - all private key material was generated and stored inside Yubikeys and can't be (easily) extracted.
+
+To use `age-yubikeygen` setup must be first executed:
+
+```bash
+$ age-yubikeygen --setup
+🔓 Enter PIN for YubiKey (default is 123456): 
+
+✨ Your YubiKey is using the default PIN. Let's change it!
+✨ We'll also set the PUK equal to the PIN.
+
+🔐 The PIN is from 6 to 8 numbers, letters, or symbols. Not just numbers!
+❌ Your keys will be lost if the PIN and PUK are locked after 3 incorrect tries.
+
+🔓 Enter current PUK (default is 12345678):  
+❓ Choose a new PIN/PUK:  
+❓ Repeat the PIN/PUK: 
+
+✨ Your YubiKey is using the default management key.
+✨ We'll migrate it to a PIN-protected management key.
+... Success!
+
+The new management key is: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+✨ Your Yubikey is ready to be used.
 
 ```
-Usage:
-    age [--encrypt] (-r RECIPIENT | -R PATH)... [--armor] [-o OUTPUT] [INPUT]
-    age [--encrypt] --passphrase [--armor] [-o OUTPUT] [INPUT]
-    age --decrypt [-i PATH]... [-o OUTPUT] [INPUT]
 
-Options:
-    -e, --encrypt               Encrypt the input to the output. Default if omitted.
-    -d, --decrypt               Decrypt the input to the output.
-    -o, --output OUTPUT         Write the result to the file at path OUTPUT.
-    -a, --armor                 Encrypt to a PEM encoded format.
-    -p, --passphrase            Encrypt with a passphrase.
-    -r, --recipient RECIPIENT   Encrypt to the specified RECIPIENT. Can be repeated.
-    -R, --recipients-file PATH  Encrypt to recipients listed at PATH. Can be repeated.
-    -i, --identity PATH         Use the identity file at PATH. Can be repeated.
+Now a new identity can be generated:
 
-INPUT defaults to standard input, and OUTPUT defaults to standard output.
-If OUTPUT exists, it will be overwritten.
+```bash
+$ age-yubikeygen
+a) Slot 1 (Empty)
+b) Slot 2 (Empty)
+c) Slot 3 (Empty)
+d) Slot 4 (Empty)
+e) Slot 5 (Empty)
+f) Slot 6 (Empty)
+g) Slot 7 (Empty)
+h) Slot 8 (Empty)
+i) Slot 9 (Empty)
+j) Slot 10 (Empty)
+k) Slot 11 (Empty)
+l) Slot 12 (Empty)
+m) Slot 13 (Empty)
+n) Slot 14 (Empty)
+o) Slot 15 (Empty)
+p) Slot 16 (Empty)
+q) Slot 17 (Empty)
+r) Slot 18 (Empty)
+s) Slot 19 (Empty)
+t) Slot 20 (Empty)
+❓ Please choose slot (or press enter to use next free slot): 
+❓ Name this identity [leave empty for automatic]:  
 
-RECIPIENT can be an age public key generated by age-keygen ("age1...")
-or an SSH public key ("ssh-ed25519 AAAA...", "ssh-rsa AAAA...").
+❓ Select a PIN policy:
+0) Always (A PIN is required for every decryption, if set)
+1) Once   (A PIN is required once per session, if set)
+2) Never  (A PIN is NOT required to decrypt)
+> 2
 
-Recipient files contain one or more recipients, one per line. Empty lines
-and lines starting with "#" are ignored as comments. "-" may be used to
-read recipients from standard input.
+❓ Select a touch policy:
+0) Always (A physical touch is required for every decryption)
+1) Cached (A physical touch is required for decryption, and is cached for 15 seconds)
+2) Never  (A physical touch is NOT required to decrypt)
 
-Identity files contain one or more secret keys ("AGE-SECRET-KEY-1..."),
-one per line, or an SSH key. Empty lines and lines starting with "#" are
-ignored as comments. Passphrase encrypted age files can be used as
-identity files. Multiple key files can be provided, and any unused ones
-will be ignored. "-" may be used to read identities from standard input.
+> 0
 
-When --encrypt is specified explicitly, -i can also be used to encrypt to an
-identity file symmetrically, instead or in addition to normal recipients.
-```
+❓ Generate new identity in slot 1? [y/n] 
 
-### Multiple recipients
+🎲 Generating key...
 
-Files can be encrypted to multiple recipients by repeating `-r/--recipient`. Every recipient will be able to decrypt the file.
+🔓 Enter PIN for YubiKey: 
+🔏 Generating certificate...
+👆 Please touch the Yubikey
 
-```
-$ age -o example.jpg.age -r age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p \
-    -r age1lggyhqrw2nlhcxprm67z43rta597azn8gknawjehu9d9dl0jq3yqqvfafg example.jpg
-```
+📝 File name to write this identity to [age-yubikey-identity-f1d4d923.txt]: 
 
-#### Recipient files
+✅ Done! This YubiKey identity is ready to go.
 
-Multiple recipients can also be listed one per line in one or more files passed with the `-R/--recipients-file` flag.
+🔑 Here's your shiny new YubiKey recipient:
 
-```
-$ cat recipients.txt
-# Alice
-age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
-# Bob
-age1lggyhqrw2nlhcxprm67z43rta597azn8gknawjehu9d9dl0jq3yqqvfafg
-$ age -R recipients.txt example.jpg > example.jpg.age
-```
+age1yubiembed1qtyc0zuw8xced8zzn9rjmvsc0dejerp0aw9yxe8ws7welfk90wkpvhgjhyr
 
-If the argument to `-R` (or `-i`) is `-`, the file is read from standard input.
+Here are some example things you can do with it:
 
-### Passphrases
+- Encrypt a file to this identity:
+$ cat foo.txt | age -r age1yubiembed1qtyc0zuw8xced8zzn9rjmvsc0dejerp0aw9yxe8ws7welfk90wkpvhgjhyr -o foo.txt.age
 
-Files can be encrypted with a passphrase by using `-p/--passphrase`. By default age will automatically generate a secure passphrase. Passphrase protected files are automatically detected at decrypt time.
+- Decrypt a file with this identity:
+$ cat foo.txt.age | age -d -i age-yubikey-identity-f1d4d923.txt > foo.txt
 
-```
-$ age -p secrets.txt > secrets.txt.age
-Enter passphrase (leave empty to autogenerate a secure one):
-Using the autogenerated passphrase "release-response-step-brand-wrap-ankle-pair-unusual-sword-train".
-$ age -d secrets.txt.age > secrets.txt
-Enter passphrase:
-```
+- Recreate the identity file:
+$ age-yubikeygen -i --serial 5442177 --slot 1 > age-yubikey-identity-f1d4d923.txt
 
-### Passphrase-protected key files
+- Recreate the recipient:
+$ age-yubikeygen -r --serial 5442177 --slot 1
 
-If an identity file passed to `-i` is a passphrase encrypted age file, it will be automatically decrypted.
+⚠️  Remember: everything breaks, have a backup plan for when this YubiKey does.
 
 ```
-$ age-keygen | age -p > key.age
-Public key: age1yhm4gctwfmrpz87tdslm550wrx6m79y9f2hdzt0lndjnehwj0ukqrjpyx5
-Enter passphrase (leave empty to autogenerate a secure one):
-Using the autogenerated passphrase "hip-roast-boring-snake-mention-east-wasp-honey-input-actress".
-$ age -r age1yhm4gctwfmrpz87tdslm550wrx6m79y9f2hdzt0lndjnehwj0ukqrjpyx5 secrets.txt > secrets.txt.age
-$ age -d -i key.age secrets.txt.age > secrets.txt
-Enter passphrase for identity file "key.age":
-```
 
-Passphrase-protected identity files are not necessary for most use cases, where access to the encrypted identity file implies access to the whole system. However, they can be useful if the identity file is stored remotely.
+## Other age-yubikeygen options
 
-### SSH keys
+The PIN and PUK can be individually changed using the `--change-pin` and `--change-puk` options.
 
-As a convenience feature, age also supports encrypting to `ssh-rsa` and `ssh-ed25519` SSH public keys, and decrypting with the respective private key file. (`ssh-agent` is not supported.)
+All the PIV slots can be reset using the `--reset` option. This is a nuclear option and all the certificates and keys will be wiped out, so be careful.
 
-```
-$ age -R ~/.ssh/id_ed25519.pub example.jpg > example.jpg.age
-$ age -d -i ~/.ssh/id_ed25519 example.jpg.age > example.jpg
-```
-
-Note that SSH key support employs more complex cryptography, and embeds a public key tag in the encrypted file, making it possible to track files that are encrypted to a specific public key.
-
-#### Encrypting to a GitHub user
-
-Combining SSH key support and `-R`, you can easily encrypt a file to the SSH keys listed on a GitHub profile.
-
-```
-$ curl https://github.com/benjojo.keys | age -R - example.jpg > example.jpg.age
-```
-
-Keep in mind that people might not protect SSH keys long-term, since they are revokable when used only for authentication, and that SSH keys held on YubiKeys can't be used to decrypt files.
+The list of identities stored in the Yubikey can be retrieved using `-i` or `--identity` option, while recipients list with `-r` or `--recipient`. Use together with `--slot` to recreate specific identity and recipients.

@@ -1,21 +1,7 @@
-// Copyright 2021 The age Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package main
-
-// This file implements the terminal UI of cmd/age. The rules are:
-//
-//   - Anything that requires user interaction goes to the terminal,
-//     and is erased afterwards if possible. This UI would be possible
-//     to replace with a pinentry with no output or UX changes.
-//
-//   - Everything else goes to standard error with an "age:" prefix.
-//     No capitalized initials and no periods at the end.
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -23,33 +9,44 @@ import (
 	"runtime"
 
 	"filippo.io/age/armor"
-	"filippo.io/age/plugin"
+	"github.com/go-piv/piv-go/piv"
 	"golang.org/x/term"
 )
 
 // l is a logger with no prefixes.
 var l = log.New(os.Stderr, "", 0)
 
+const (
+	debug     = true
+	KEY_CTRLC = 0x3
+	KEY_ESC   = 0x1b
+	KEY_ENTER = 0xd
+)
+
+func debugf(format string, v ...interface{}) {
+	if debug {
+		l.Printf("debug: "+format, v...)
+	}
+}
+
 func printf(format string, v ...interface{}) {
-	l.Printf("age: "+format, v...)
+	l.Printf("age-yubikeygen: "+format, v...)
 }
 
 func errorf(format string, v ...interface{}) {
-	l.Printf("age: error: "+format, v...)
-	l.Printf("age: report unexpected or unhelpful errors at https://filippo.io/age/report")
+	l.Printf("error: "+format, v...)
 	exit(1)
 }
 
 func warningf(format string, v ...interface{}) {
-	l.Printf("age: warning: "+format, v...)
+	l.Printf("warning: "+format, v...)
 }
 
 func errorWithHint(error string, hints ...string) {
-	l.Printf("age: error: %s", error)
+	l.Printf("error: %s", error)
 	for _, hint := range hints {
-		l.Printf("age: hint: %s", hint)
+		l.Printf("age-yubikeygen: hint: %s", hint)
 	}
-	l.Printf("age: report unexpected or unhelpful errors at https://filippo.io/age/report")
 	exit(1)
 }
 
@@ -130,6 +127,28 @@ func readSecret(prompt string) (s []byte, err error) {
 	return
 }
 
+func readLine(prompt string) (s []byte, err error) {
+	err = withTerminal(func(in, out *os.File) error {
+		fmt.Fprintf(out, "%s ", prompt)
+		defer clearLine(out)
+
+		oldState, err := term.MakeRaw(int(in.Fd()))
+		if err != nil {
+			return err
+		}
+		defer term.Restore(int(in.Fd()), oldState)
+
+		n := term.NewTerminal(in, "")
+		line, err := n.ReadLine()
+		if err != nil {
+			return err
+		}
+		s = []byte(line)
+		return nil
+	})
+	return
+}
+
 // readCharacter reads a single character from the terminal with no echo. The
 // prompt is ephemeral.
 func readCharacter(prompt string) (c byte, err error) {
@@ -147,65 +166,10 @@ func readCharacter(prompt string) (c byte, err error) {
 		if _, err := in.Read(b); err != nil {
 			return err
 		}
-
 		c = b[0]
 		return nil
 	})
 	return
-}
-
-var pluginTerminalUI = &plugin.ClientUI{
-	DisplayMessage: func(name, message string) error {
-		printf("%s plugin: %s", name, message)
-		return nil
-	},
-	RequestValue: func(name, message string, _ bool) (s string, err error) {
-		defer func() {
-			if err != nil {
-				warningf("could not read value for age-plugin-%s: %v", name, err)
-			}
-		}()
-		secret, err := readSecret(message)
-		if err != nil {
-			return "", err
-		}
-		return string(secret), nil
-	},
-	Confirm: func(name, message, yes, no string) (choseYes bool, err error) {
-		defer func() {
-			if err != nil {
-				warningf("could not read value for age-plugin-%s: %v", name, err)
-			}
-		}()
-		if no == "" {
-			message += fmt.Sprintf(" (press enter for %q)", yes)
-			_, err := readSecret(message)
-			if err != nil {
-				return false, err
-			}
-			return true, nil
-		}
-		message += fmt.Sprintf(" (press [1] for %q or [2] for %q)", yes, no)
-		for {
-			selection, err := readCharacter(message)
-			if err != nil {
-				return false, err
-			}
-			switch selection {
-			case '1':
-				return true, nil
-			case '2':
-				return false, nil
-			case '\x03': // CTRL-C
-				return false, errors.New("user cancelled prompt")
-			default:
-				warningf("reading value for age-plugin-%s: invalid selection %q", name, selection)
-			}
-		}
-	},
-	WaitTimer: func(name string) {
-		printf("waiting on %s plugin...", name)
-	},
 }
 
 func bufferTerminalInput(in io.Reader) (io.Reader, error) {
@@ -224,3 +188,88 @@ func bufferTerminalInput(in io.Reader) (io.Reader, error) {
 type ReaderFunc func(p []byte) (n int, err error)
 
 func (f ReaderFunc) Read(p []byte) (n int, err error) { return f(p) }
+
+type touchPolicy struct {
+	label  string
+	option byte
+	value  piv.TouchPolicy
+}
+
+func RequestTouchPolicy(prompt string) piv.TouchPolicy {
+	policy := []touchPolicy{
+		{
+			label:  "Always (A physical touch is required for every decryption)",
+			option: '0',
+			value:  piv.TouchPolicyAlways,
+		},
+		{
+			label:  "Cached (A physical touch is required for decryption, and is cached for 15 seconds)",
+			option: '1',
+			value:  piv.TouchPolicyCached,
+		},
+		{
+			label:  "Never  (A physical touch is NOT required to decrypt)",
+			option: '2',
+			value:  piv.TouchPolicyNever,
+		},
+	}
+
+	fmt.Println(prompt)
+	for _, v := range policy {
+		fmt.Printf("%c) %s\n", v.option, v.label)
+	}
+	for {
+		selection, _ := readCharacter(">")
+		if selection == KEY_CTRLC || selection == KEY_ESC {
+			os.Exit(1)
+		}
+		for _, v := range policy {
+			if v.option == selection {
+				return v.value
+			}
+		}
+	}
+}
+
+type pinPolicy struct {
+	label  string
+	option byte
+	value  piv.PINPolicy
+}
+
+// returns a valid value or exits on user cancel
+func RequestPINPolicy(prompt string) piv.PINPolicy {
+	policy := []pinPolicy{
+		{
+			label:  "Always (A PIN is required for every decryption, if set)",
+			option: '0',
+			value:  piv.PINPolicyAlways,
+		},
+		{
+			label:  "Once   (A PIN is required once per session, if set)",
+			option: '1',
+			value:  piv.PINPolicyOnce,
+		},
+		{
+			label:  "Never  (A PIN is NOT required to decrypt)",
+			option: '2',
+			value:  piv.PINPolicyNever,
+		},
+	}
+
+	fmt.Println(prompt)
+	for _, v := range policy {
+		fmt.Printf("%c) %s\n", v.option, v.label)
+	}
+	for {
+		selection, _ := readCharacter(">")
+		if selection == KEY_CTRLC || selection == KEY_ESC {
+			os.Exit(1)
+		}
+		for _, v := range policy {
+			if v.option == selection {
+				return v.value
+			}
+		}
+	}
+}

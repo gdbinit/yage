@@ -1,9 +1,10 @@
 module filippo.io/age
 
-go 1.19
+go 1.20
 
 require (
 	filippo.io/edwards25519 v1.0.0
+	github.com/go-piv/piv-go v1.10.0
 	golang.org/x/crypto v0.4.0
 	golang.org/x/sys v0.3.0
 	golang.org/x/term v0.3.0
@@ -18,3 +19,5 @@ require (
 
 // https://github.com/rogpeppe/go-internal/pull/172
 replace github.com/rogpeppe/go-internal => github.com/FiloSottile/go-internal v1.8.2-0.20230102123319-d43ebe7f1660
+
+replace filippo.io/age => github.com/gdbinit/age v0.0.0-20230116161722-4a403cf0d216
