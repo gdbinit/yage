@@ -31,6 +31,14 @@ I have no idea if there is a point in trying to merge with upstream `age`. The r
 Have fun,  
 fG!
 
+## Requirements
+
+### Debian or Ubuntu:
+
+```bash
+sudo apt-get install pcscd libpcsclite-dev
+```
+
 ## Installation
 
 ```bash
