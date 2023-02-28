@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
-	"filippo.io/age"
-	"filippo.io/age/armor"
+	age "github.com/gdbinit/yage"
+	"github.com/gdbinit/yage/armor"
 
 	agetest "c2sp.org/CCTV/age"
 )

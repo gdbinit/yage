@@ -1,12 +1,8 @@
-
-
-**Moved the fork to [yage](https://github.com/gdbinit/yage).**
-
 ## About
 
-This is an [age](https://github.com/FiloSottile/age) fork to directly use Yubikeys for private key generation and storage instead of external plugins such as [age-plugin-yubikey](https://github.com/str4d/age-plugin-yubikey) or [yubage](https://github.com/tv42/yubage).
+This is an [age](https://github.com/FiloSottile/age) fork with internal support for Yubikeys private key generation and storage instead of external plugins such as [age-plugin-yubikey](https://github.com/str4d/age-plugin-yubikey) or [yubage](https://github.com/tv42/yubage).
 
-The main reasons for this are that I find it annyoing to have external plugins for this specific purpose (negating Go's awesome static binaries) and complicates the [gopass](https://www.gopass.pw/) fork that I want to finish next.
+The main reasons for this are that I find it annyoing to have external plugins for this specific purpose (negating Go's awesome static binaries feature) and complicates the [gopass](https://www.gopass.pw/) fork that I want to finish next.
 
 While I understand why it was created, I'm not a fan of the plugin design since external code from `PATH` is called and there is no authentication between the caller (age) and the plugin, which is kind of weird when exchanging critical crypto material.
 
@@ -16,11 +12,11 @@ It also follows a principle to use as less external code as possible so the UI i
 
 A complete key generator `age-yubikeygen` is available and is pretty much on par with `age-plugin-yubikey` features.
 
-One difference versus `age-plugin-yubikey` usage is that you should initially run setup as `age-yubikeygen --setup` to make the target Yubikey ready (essentially forcing default PIN changes and migrating the management key to a PIN protected metadata slot). This is to support new and existing Yubikeys.
+One difference versus `age-plugin-yubikey` usage is that you should initially run setup as `age-yubikeygen --setup` to make the target Yubikey ready (essentially forcing default PIN changes and migrating the management key to a PIN protected metadata slot). This is to support new and existing Yubikeys you might have.
 
-Please notice that both `age-yubikeygen` and `age-plugin-yubikey` use the "retired key management" slots to store their keys and certificates. It's not possible to remove keys/certificates from individual slots but slot overwrite is supported.
+Please notice that both `age-yubikeygen` and `age-plugin-yubikey` use the "retired key management" slots to store their keys and certificates. It's not possible to remove keys/certificates from individual slots (only all slots reset) but slot overwrite is supported.
 
-The key generator utility also supports a full PIV reset and options to change PIN and PUK. This avoids using `ykman` for these operations. **Please be aware that the PIV reset will clear all the slots, including the often used 9a, 9c, 9d, and 9e**. 
+The key generator utility also supports a full PIV reset (`age-yubikeygen --reset`) and options to change PIN and PUK. This avoids using `ykman` for these operations. **Please be aware that the PIV reset will clear all the slots, including the often used 9a, 9c, 9d, and 9e in GPG setups**. 
 
 The `age` command code was slightly modified to parse the new identity/recipient while also still supporting `age-plugin-yubikey`.
 
@@ -38,8 +34,8 @@ fG!
 ## Installation
 
 ```bash
-git clone https://github.com/gdbinit/age.git
-cd age
+git clone https://github.com/gdbinit/yage.git
+cd yage
 make
 sudo cp {age,age-keygen,age-yubikeygen} /usr/local/bin
 ```

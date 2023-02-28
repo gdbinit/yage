@@ -15,10 +15,10 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"filippo.io/age"
-	"filippo.io/age/agessh"
-	"filippo.io/age/armor"
-	"filippo.io/age/plugin"
+	age "github.com/gdbinit/yage"
+	"github.com/gdbinit/yage/agessh"
+	"github.com/gdbinit/yage/armor"
+	"github.com/gdbinit/yage/plugin"
 	"golang.org/x/term"
 )
 

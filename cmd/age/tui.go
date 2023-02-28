@@ -22,8 +22,8 @@ import (
 	"os"
 	"runtime"
 
-	"filippo.io/age/armor"
-	"filippo.io/age/plugin"
+	"github.com/gdbinit/yage/armor"
+	"github.com/gdbinit/yage/plugin"
 	"golang.org/x/term"
 )
 

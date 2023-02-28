@@ -13,7 +13,7 @@
 // age encrypted files are binary and not malleable. For encoding them as text,
 // use the filippo.io/age/armor package.
 //
-// Key management
+// # Key management
 //
 // age does not have a global keyring. Instead, since age keys are small,
 // textual, and cheap, you are encouraged to generate dedicated keys for each
@@ -34,7 +34,7 @@
 // infrastructure, you might want to consider implementing your own Recipient
 // and Identity.
 //
-// Backwards compatibility
+// # Backwards compatibility
 //
 // Files encrypted with a stable version (not alpha, beta, or release candidate)
 // of age, or with any v1.0.0 beta or release candidate, will decrypt with any
@@ -52,8 +52,8 @@ import (
 	"fmt"
 	"io"
 
-	"filippo.io/age/internal/format"
-	"filippo.io/age/internal/stream"
+	"github.com/gdbinit/yage/internal/format"
+	"github.com/gdbinit/yage/internal/stream"
 )
 
 // An Identity is passed to Decrypt to unwrap an opaque file key from a

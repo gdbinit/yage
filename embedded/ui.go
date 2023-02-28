@@ -9,7 +9,7 @@ import (
 	"os"
 	"runtime"
 
-	"filippo.io/age/armor"
+	"github.com/gdbinit/yage/armor"
 	"golang.org/x/term"
 )
 

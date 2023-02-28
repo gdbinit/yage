@@ -13,7 +13,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"filippo.io/age"
+	age "github.com/gdbinit/yage"
 	"golang.org/x/term"
 )
 

@@ -23,8 +23,8 @@ import (
 	"io"
 	"strings"
 
-	"filippo.io/age"
-	"filippo.io/age/internal/bech32"
+	age "github.com/gdbinit/yage"
+	"github.com/gdbinit/yage/internal/bech32"
 	"github.com/go-piv/piv-go/piv"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/hkdf"

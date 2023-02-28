@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"filippo.io/age"
+	age "github.com/gdbinit/yage"
 )
 
 func ExampleEncrypt() {

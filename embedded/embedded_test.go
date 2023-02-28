@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"filippo.io/age/embedded"
+	"github.com/gdbinit/yage/embedded"
 )
 
 const fileKeySize = 16

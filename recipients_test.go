@@ -9,7 +9,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"filippo.io/age"
+	age "github.com/gdbinit/yage"
 )
 
 func TestX25519RoundTrip(t *testing.T) {

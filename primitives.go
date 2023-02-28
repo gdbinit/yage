@@ -10,7 +10,7 @@ import (
 	"errors"
 	"io"
 
-	"filippo.io/age/internal/format"
+	"github.com/gdbinit/yage/internal/format"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/hkdf"
 )

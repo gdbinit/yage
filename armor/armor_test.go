@@ -19,9 +19,9 @@ import (
 	"strings"
 	"testing"
 
-	"filippo.io/age"
-	"filippo.io/age/armor"
-	"filippo.io/age/internal/format"
+	age "github.com/gdbinit/yage"
+	"github.com/gdbinit/yage/armor"
+	"github.com/gdbinit/yage/internal/format"
 )
 
 func ExampleNewWriter() {

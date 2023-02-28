@@ -19,9 +19,9 @@ import (
 
 	exec "golang.org/x/sys/execabs"
 
-	"filippo.io/age"
-	"filippo.io/age/internal/bech32"
-	"filippo.io/age/internal/format"
+	age "github.com/gdbinit/yage"
+	"github.com/gdbinit/yage/internal/bech32"
+	"github.com/gdbinit/yage/internal/format"
 )
 
 type Recipient struct {

@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"filippo.io/age"
+	age "github.com/gdbinit/yage"
 )
 
 // LazyScryptIdentity is an age.Identity that requests a passphrase only if it

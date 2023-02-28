@@ -12,11 +12,11 @@ import (
 	"os"
 	"strings"
 
-	"filippo.io/age"
-	"filippo.io/age/agessh"
-	"filippo.io/age/armor"
-	"filippo.io/age/embedded"
-	"filippo.io/age/plugin"
+	age "github.com/gdbinit/yage"
+	"github.com/gdbinit/yage/agessh"
+	"github.com/gdbinit/yage/armor"
+	"github.com/gdbinit/yage/embedded"
+	"github.com/gdbinit/yage/plugin"
 	"golang.org/x/crypto/cryptobyte"
 	"golang.org/x/crypto/ssh"
 )
@@ -33,9 +33,9 @@ func parseRecipient(arg string) (age.Recipient, error) {
 	switch {
 	case strings.HasPrefix(arg, "age1") && strings.Count(arg, "1") > 1:
 		if strings.Contains(arg, "yubiembed") {
-			return embedded.NewRecipient(arg)	
+			return embedded.NewRecipient(arg)
 		} else {
-			return plugin.NewRecipient(arg, pluginTerminalUI)	
+			return plugin.NewRecipient(arg, pluginTerminalUI)
 		}
 	case strings.HasPrefix(arg, "age1"):
 		return age.ParseX25519Recipient(arg)

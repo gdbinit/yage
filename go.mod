@@ -1,4 +1,4 @@
-module filippo.io/age
+module github.com/gdbinit/yage
 
 go 1.20
 
@@ -19,5 +19,3 @@ require (
 
 // https://github.com/rogpeppe/go-internal/pull/172
 replace github.com/rogpeppe/go-internal => github.com/FiloSottile/go-internal v1.8.2-0.20230102123319-d43ebe7f1660
-
-replace filippo.io/age => github.com/gdbinit/age v0.0.0-20230116161722-4a403cf0d216

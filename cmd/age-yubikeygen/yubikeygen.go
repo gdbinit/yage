@@ -20,7 +20,7 @@ import (
 	"os"
 	"time"
 
-	"filippo.io/age/internal/bech32"
+	"github.com/gdbinit/yage/internal/bech32"
 	"github.com/go-piv/piv-go/piv"
 )
 

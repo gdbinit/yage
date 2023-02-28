@@ -8,7 +8,7 @@ import (
 	"os"
 	"runtime"
 
-	"filippo.io/age/armor"
+	"github.com/gdbinit/yage/armor"
 	"github.com/go-piv/piv-go/piv"
 	"golang.org/x/term"
 )
