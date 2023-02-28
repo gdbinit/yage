@@ -1,3 +1,7 @@
+
+
+**Moved the fork to [yage](https://github.com/gdbinit/yage).**
+
 ## About
 
 This is an [age](https://github.com/FiloSottile/age) fork to directly use Yubikeys for private key generation and storage instead of external plugins such as [age-plugin-yubikey](https://github.com/str4d/age-plugin-yubikey) or [yubage](https://github.com/tv42/yubage).
