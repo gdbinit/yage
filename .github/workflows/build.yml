@@ -22,6 +22,9 @@ jobs:
           - {GOOS: windows, GOARCH: amd64}
           - {GOOS: freebsd, GOARCH: amd64}
     steps:
+      - name: Install dependencies
+        run: |
+          apt-get install pcscd libpcsclite-dev
       - name: Install Go
         uses: actions/setup-go@v3
         with:
@@ -40,6 +43,7 @@ jobs:
           DIR="$(mktemp -d)"
           mkdir "$DIR/age"
           cp "$RUNNER_TEMP/LICENSE" "$DIR/age"
+          echo "Building..."
           go build -o "$DIR/age" -ldflags "-X main.Version=$VERSION" -trimpath ./cmd/...
           if [ "$GOOS" == "windows" ]; then
             sudo apt-get update && sudo apt-get install -y osslsigncode
