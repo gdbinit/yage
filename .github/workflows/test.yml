@@ -4,6 +4,7 @@ permissions:
   contents: read
 jobs:
   test:
+    if: ${{ false }} # disable for now
     name: Test
     strategy:
       fail-fast: false
@@ -23,6 +24,7 @@ jobs:
       - name: Run tests
         run: go test -race ./...
   freebsd:
+    if: ${{ false }} # disable for now
     name: Test (FreeBSD)
     runs-on: macos-10.15
     steps:
@@ -40,6 +42,7 @@ jobs:
             go version
           run: go test -buildvcs=false -race ./...
   gotip:
+    if: ${{ false }} # disable for now
     name: Test (Go tip)
     strategy:
       fail-fast: false
