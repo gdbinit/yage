@@ -15,12 +15,12 @@ jobs:
       matrix:
         include:
           - {GOOS: linux, GOARCH: amd64}
-          - {GOOS: linux, GOARCH: arm, GOARM: 6}
-          - {GOOS: linux, GOARCH: arm64}
-          - {GOOS: darwin, GOARCH: amd64}
-          - {GOOS: darwin, GOARCH: arm64}
-          - {GOOS: windows, GOARCH: amd64}
-          - {GOOS: freebsd, GOARCH: amd64}
+          # - {GOOS: linux, GOARCH: arm, GOARM: 6}
+          # - {GOOS: linux, GOARCH: arm64}
+          # - {GOOS: darwin, GOARCH: amd64}
+          # - {GOOS: darwin, GOARCH: arm64}
+          # - {GOOS: windows, GOARCH: amd64}
+          # - {GOOS: freebsd, GOARCH: amd64}
     steps:
       - name: Install dependencies
         run: |
