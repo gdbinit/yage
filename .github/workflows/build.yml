@@ -32,6 +32,7 @@ jobs:
           fetch-depth: 0
       - name: Build binary
         run: |
+          go version
           cp LICENSE "$RUNNER_TEMP/LICENSE"
           echo -e "\n---\n" >> "$RUNNER_TEMP/LICENSE"
           curl -L "https://go.dev/LICENSE?m=text" >> "$RUNNER_TEMP/LICENSE"
@@ -58,7 +59,7 @@ jobs:
             tar -cvzf "age-$VERSION-$GOOS-$GOARCH.tar.gz" -C "$DIR" age
           fi
         env:
-          CGO_ENABLED: 0
+          CGO_ENABLED: 1
           GOOS: ${{ matrix.GOOS }}
           GOARCH: ${{ matrix.GOARCH }}
           GOARM: ${{ matrix.GOARM }}
