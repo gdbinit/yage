@@ -39,7 +39,7 @@ jobs:
           cp LICENSE "$RUNNER_TEMP/LICENSE"
           echo -e "\n---\n" >> "$RUNNER_TEMP/LICENSE"
           curl -L "https://go.dev/LICENSE?m=text" >> "$RUNNER_TEMP/LICENSE"
-          VERSION="$(git describe --tags)"
+          VERSION="$(git describe --always)"
           DIR="$(mktemp -d)"
           mkdir "$DIR/age"
           cp "$RUNNER_TEMP/LICENSE" "$DIR/age"
