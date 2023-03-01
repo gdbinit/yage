@@ -24,7 +24,7 @@ This fork requires Go 1.20+ because it's already using latest `crypto/ecdh` pack
 
 Both Yubikeys 4 and 5 are supported, although Yubikeys 5 are better because of [issues](https://github.com/go-piv/piv-go/issues/47) with the caching and PIN reset. For example, the `once` policy isn't really easy to support with Yubikeys 4 and it's pretty much useless for practical usage purposes, meaning, that you always need to insert PIN when doing operations. This problem doesn't occur with Yubikeys 5.
 
-Tested on macOS x86_64 & ARM64, and Linux x86_64 & ARM64.
+Tested on macOS x86_64 & ARM64, and Linux x86_64 & ARM64, FreeBSD 13.1 ARM64.
 
 I have no idea if there is a point in trying to merge with upstream `age`. The reason is that `age` codebase is quite stable these days and this fork ideas might not make sense there. Its goal is pretty much to fulfill my needs. I'll leave it to Filippo to decide that. All new code follows the original `age` license.
 
@@ -33,10 +33,40 @@ fG!
 
 ## Requirements
 
+As mention above, Go 1.20+ is required.
+
+CGO is required because of `pcscd` dependency from `piv-go` package. Unfortunately there isn't yet a full PC/SC Go implementation. Maybe that could be a future project.
+
+On Linux [PCSC lite](https://pcsclite.apdu.fr/) middleware is required. The `pcscd` daemon for runtime and `libpcsclite-dev` to build.
+
+### macOS
+
+The `PCSC.framework` is included with macOS so no extra dependencies are necessary to install. The `CryptoTokenKit` framework reimplemented PCSC and maybe could be used but `piv-go` still links against `PCSC.framework` and this would require another fork or changes upstream.
+
 ### Debian or Ubuntu:
 
 ```bash
 sudo apt-get install pcscd libpcsclite-dev
+```
+
+### Fedora
+
+```bash
+sudo yum install pcsc-lite-devel
+```
+
+### CentOS
+
+```bash
+sudo yum install 'dnf-command(config-manager)'
+sudo yum config-manager --set-enabled PowerTools
+sudo yum install pcsc-lite-devel
+```
+
+### FreeBSD
+
+```bash
+sudo pkg install pcsc-lite
 ```
 
 ## Installation
