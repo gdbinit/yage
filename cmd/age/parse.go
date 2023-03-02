@@ -15,8 +15,8 @@ import (
 	age "github.com/gdbinit/yage"
 	"github.com/gdbinit/yage/agessh"
 	"github.com/gdbinit/yage/armor"
-	"github.com/gdbinit/yage/embedded"
 	"github.com/gdbinit/yage/plugin"
+	"github.com/gdbinit/yage/yubikey"
 	"golang.org/x/crypto/cryptobyte"
 	"golang.org/x/crypto/ssh"
 )
@@ -33,7 +33,7 @@ func parseRecipient(arg string) (age.Recipient, error) {
 	switch {
 	case strings.HasPrefix(arg, "age1") && strings.Count(arg, "1") > 1:
 		if strings.Contains(arg, "yubiembed") {
-			return embedded.NewRecipient(arg)
+			return yubikey.NewRecipient(arg)
 		} else {
 			return plugin.NewRecipient(arg, pluginTerminalUI)
 		}
@@ -203,7 +203,7 @@ func parseIdentitiesFile(name string) ([]age.Identity, error) {
 func parseIdentity(s string) (age.Identity, error) {
 	switch {
 	case strings.HasPrefix(s, "AGE-PLUGIN-YUBIEMBED"):
-		return embedded.NewIdentity(s)
+		return yubikey.NewIdentity(s)
 	case strings.HasPrefix(s, "AGE-PLUGIN-"):
 		return plugin.NewIdentity(s, pluginTerminalUI)
 	case strings.HasPrefix(s, "AGE-SECRET-KEY-1"):

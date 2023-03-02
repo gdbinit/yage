@@ -7,7 +7,7 @@
 // Copyright (c) 2021 Tommi Virtanen
 
 // Implements yubikey based encryption without calling an external plugin
-package embedded
+package yubikey
 
 import (
 	"crypto"
