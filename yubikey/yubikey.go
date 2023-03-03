@@ -213,6 +213,11 @@ func (i *Identity) Name() string {
 	return i.name
 }
 
+// Tag returns the identity tag, which should be unique
+func (i *Identity) Tag() string {
+	return i.tag
+}
+
 func openBySerial(serial uint32) (*piv.YubiKey, error) {
 	cards, err := piv.Cards()
 	if err != nil {
