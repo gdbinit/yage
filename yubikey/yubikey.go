@@ -38,7 +38,7 @@ const (
 	RECIPIENT_PREFIX = "age1yubiembed"
 )
 
-type EmbeddedRecipient struct {
+type Recipient struct {
 	name     string
 	encoding string
 	// these are the parameters extracted from the recipient string
@@ -47,12 +47,12 @@ type EmbeddedRecipient struct {
 	tag        string // follows age-plugin-yubikey tag definition, which is != from yubage
 }
 
-var _ age.Recipient = &EmbeddedRecipient{}
+var _ age.Recipient = &Recipient{}
 
-// NewRecipient returns a new EmbeddedRecipient instance
+// NewRecipient returns a new Recipient instance
 // includes the data extracted from the recipient string
 // necessary to wrap (encrypt) the encryption file key
-func NewRecipient(s string) (*EmbeddedRecipient, error) {
+func NewRecipient(s string) (*Recipient, error) {
 	hrp, compressed, err := bech32.Decode(s)
 	if err != nil {
 		return nil, fmt.Errorf("invalid recipient encoding %q: %v", s, err)
@@ -82,7 +82,7 @@ func NewRecipient(s string) (*EmbeddedRecipient, error) {
 	hashed := sha256.Sum256(compressed)
 	tag := base64.RawStdEncoding.EncodeToString(hashed[:4])
 
-	return &EmbeddedRecipient{
+	return &Recipient{
 		name:       name,
 		encoding:   s,
 		compressed: compressed,
@@ -94,13 +94,13 @@ func NewRecipient(s string) (*EmbeddedRecipient, error) {
 // Name returns the plugin name, which is used in the recipient ("age1name1...")
 // and identity ("AGE-PLUGIN-NAME-1...") encodings, as well as in the plugin
 // binary name ("age-plugin-name").
-func (r *EmbeddedRecipient) Name() string {
+func (r *Recipient) Name() string {
 	return r.name
 }
 
 // Wrap encrypts the file key for the current recipient
 // This function is called once per recipient parsed by the caller
-func (r *EmbeddedRecipient) Wrap(fileKey []byte) (stanzas []*age.Stanza, err error) {
+func (r *Recipient) Wrap(fileKey []byte) (stanzas []*age.Stanza, err error) {
 	// we have all the recipient info in our instance when initialized
 	// that's the compressed recipient public key (yubikey essentially)
 	// so we just need to wrap the filekey in a single stanza
@@ -157,7 +157,7 @@ func (r *EmbeddedRecipient) Wrap(fileKey []byte) (stanzas []*age.Stanza, err err
 	return stanzas, nil
 }
 
-type EmbeddedIdentity struct {
+type Identity struct {
 	name     string
 	encoding string
 	serial   uint32
@@ -166,7 +166,7 @@ type EmbeddedIdentity struct {
 	ui       *ClientUI
 }
 
-var _ age.Identity = &EmbeddedIdentity{}
+var _ age.Identity = &Identity{}
 
 type pivRecipientStanza struct {
 	Index          string
@@ -175,7 +175,7 @@ type pivRecipientStanza struct {
 	WrappedFileKey []byte
 }
 
-func NewIdentity(s string) (*EmbeddedIdentity, error) {
+func NewIdentity(s string) (*Identity, error) {
 	hrp, data, err := bech32.Decode(s)
 	if err != nil {
 		return nil, fmt.Errorf("invalid identity encoding: %v", err)
@@ -196,7 +196,7 @@ func NewIdentity(s string) (*EmbeddedIdentity, error) {
 	tagBuf := data[5:9]
 	tag := base64.RawStdEncoding.EncodeToString(tagBuf)
 
-	return &EmbeddedIdentity{
+	return &Identity{
 		name:     name,
 		encoding: s,
 		serial:   binary.LittleEndian.Uint32(data[:4]),
@@ -209,7 +209,7 @@ func NewIdentity(s string) (*EmbeddedIdentity, error) {
 // Name returns the plugin name, which is used in the recipient ("age1name1...")
 // and identity ("AGE-PLUGIN-NAME-1...") encodings, as well as in the plugin
 // binary name ("age-plugin-name").
-func (i *EmbeddedIdentity) Name() string {
+func (i *Identity) Name() string {
 	return i.name
 }
 
@@ -253,7 +253,7 @@ func openBySerial(serial uint32) (*piv.YubiKey, error) {
 	return nil, fmt.Errorf("Yubikey with serial %d not found", serial)
 }
 
-func (i *EmbeddedIdentity) Unwrap(stanzas []*age.Stanza) (fileKey []byte, err error) {
+func (i *Identity) Unwrap(stanzas []*age.Stanza) (fileKey []byte, err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("%s plugin: %w", i.name, err)
