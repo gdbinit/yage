@@ -191,3 +191,22 @@ The PIN and PUK can be individually changed using the `--change-pin` and `--chan
 All the PIV slots can be reset using the `--reset` option. This is a nuclear option and all the certificates and keys will be wiped out, so be careful.
 
 The list of identities stored in the Yubikey can be retrieved using `-i` or `--identity` option, while recipients list with `-r` or `--recipient`. Use together with `--slot` to recreate specific identity and recipients.
+
+## passage compatibility
+
+`yage` is a drop-in replacement for `age` and can be used with [passage](https://github.com/FiloSottile/passage) without modifications (unless `yage` is not installed as `age`).
+
+The only change is how identities and recipients are created or added.
+
+For example, assuming there is already an identity created with `age-yubikeygen` in Yubikey slot number 2, the `passage` setup after installation should be:
+
+```bash
+mkdir -p $HOME/.passage/store
+chmod -R 700 $HOME/.passage/
+age-yubikeygen -i --slot 2 >> $HOME/.passage/identities
+age-yubikeygen -r --slot 2 >> $HOME/.passage/store/.age-recipients
+```
+
+There is no `init` command in `passage` script so this manually creates the expected folders, and then retrieves the identity and recipient from the Yubikey to the expected `passage` configuration files. 
+
+Multiple recipients can be added to `$HOME/.passage/store/.age-recipients` such as a backup recipient from another Yubikey and/or a regular `age` recipient securely stored offline.
